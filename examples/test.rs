@@ -1,8 +1,8 @@
 use loggerithm;
 
+struct MyLogger;
+impl loggerithm::Logger for MyLogger {}
+
 fn main() {
-    test2();
-}
-fn test2() {
-    loggerithm::test_func();
+    loggerithm::init!(MyLogger);
 }
