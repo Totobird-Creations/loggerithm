@@ -12,10 +12,9 @@ pub static mut LOGGERS : Lazy<Mutex<HashMap<String, Logger>>> = Lazy::new(|| {
     let mut map = HashMap::new();
     map.insert(String::new(), Logger::new()
         .add_target(|context| {
-            println!("[ {} ] [ {}:{} ]",
+            println!("[ {} ] [ {}:{}:{} ]",
                 context.level_npf(),
-                context.module(),
-                context.line()
+                context.module(), context.line(), context.column()
             )
         })
         .default_formatting()

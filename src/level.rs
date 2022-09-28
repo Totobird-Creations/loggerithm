@@ -35,7 +35,7 @@ impl LogLevel<'_> {
             name,
             severity
         };
-        let lazy = Lazy::<(), _>::new(|| {level.init()});
+        let lazy = Lazy::<(), _>::new(|| {level.init();});
         return level;
     }
     pub fn new<'l, S : Into<&'l str>>(name_s : S, severity : u32) -> LogLevel<'l> {

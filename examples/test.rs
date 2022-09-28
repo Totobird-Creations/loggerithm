@@ -1,4 +1,4 @@
-use loggerithm::{register, log};
+use loggerithm::log;
 use loggerithm::level::{TRACE, DEBUG, INFO, NOTICE, SUCCESS, FAILURE, WARN, ERROR, FATAL};
 
 fn main() {

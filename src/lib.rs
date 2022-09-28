@@ -71,10 +71,13 @@ impl Logger<'_> {
             text.normal()
         };
     }
-    pub fn log(&self, level : &LogLevel, text : String) {
+    pub fn log(&self, level : &LogLevel, module : String, position : (u32, u32), text : String) {
         let context = LogContext {
-            logger : self,
-            level  : level
+            logger   : self,
+            level    : level,
+            module   : module,
+            position : position,
+            text     : text
         };
         for target in &self.targets {
             target(&context);
@@ -84,8 +87,11 @@ impl Logger<'_> {
 
 
 pub struct LogContext<'l> {
-    logger : &'l Logger<'l>,
-    level  : &'l LogLevel<'l>
+    logger   : &'l Logger<'l>,
+    level    : &'l LogLevel<'l>,
+    module   : String,
+    position : (u32, u32),
+    text     : String
 }
 impl LogContext<'_> {
     // Level
@@ -108,6 +114,18 @@ impl LogContext<'_> {
     pub fn level_npf(&self) -> ColoredString {
         return self.logger.format(self.level, self.level_np());
     }
+    pub fn module(&self) -> String {
+        return String::from(&self.module);
+    }
+    pub fn line(&self) -> u32 {
+        return self.position.0;
+    }
+    pub fn column(&self) -> u32 {
+        return self.position.1;
+    }
+    pub fn message(&self) -> String {
+        return String::from(&self.text);
+    }
 }
 
 
@@ -126,6 +144,12 @@ macro_rules! log {
     ($level:expr, $($fmt:tt)*) => {{
         let text = format!($($fmt)*);
         let name = $crate::internal::get_logger_name(module_path!().to_string());
-        unsafe {$crate::internal::LOGGERS.lock().unwrap().get(&name).unwrap().log($level, text)};
+        unsafe {$crate::internal::LOGGERS.lock().unwrap()}
+            .get(&name).unwrap()
+            .log(
+                $level,
+                module_path!().to_string(), (line!(), column!()),
+                text
+            );
     }}
 }
