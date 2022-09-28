@@ -1,1 +1,1 @@
-/home/runner/Logging-Livrary/target/debug/examples/test: /home/runner/Logging-Livrary/examples/test.rs /home/runner/Logging-Livrary/src/lib.rs
+/home/runner/Loggerithm/target/debug/examples/test: /home/runner/Loggerithm/examples/test.rs /home/runner/Loggerithm/src/internal.rs /home/runner/Loggerithm/src/level.rs /home/runner/Loggerithm/src/lib.rs

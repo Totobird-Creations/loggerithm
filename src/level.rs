@@ -1,5 +1,6 @@
+use once_cell::sync::Lazy;
+
 use crate::internal;
-use crate::LogLevel;
 
 
 
@@ -15,8 +16,56 @@ pub static FATAL   : &'static LogLevel = &LogLevel::new_const("FATAL"   , 50 );
 
 
 
-pub fn set_global_min_severity<I : Into<i32>>(level : I) {
+pub fn set_global_min_severity<I : Into<u32>>(level : I) {
     unsafe {
         internal::MIN_SEVERITY = level.into();
     }
 }
+
+
+
+#[derive(PartialEq, Eq, Hash)]
+pub struct LogLevel<'l> {
+    name     : &'l str,
+    severity : u32
+}
+impl LogLevel<'_> {
+    pub const fn new_const(name : &str, severity : u32) -> LogLevel {
+        let level = LogLevel {
+            name,
+            severity
+        };
+        let lazy = Lazy::<(), _>::new(|| {level.init()});
+        return level;
+    }
+    pub fn new<'l, S : Into<&'l str>>(name_s : S, severity : u32) -> LogLevel<'l> {
+        let name  = name_s.into();
+        let level = LogLevel {
+            name,
+            severity
+        };
+        level.init();
+        return level;
+    }
+    fn init(&self) {
+        if (unsafe {internal::MAX_LEVEL_LEN} < self.name.len()) {
+            unsafe {
+                internal::MAX_LEVEL_LEN = self.name.len();
+            }
+        }
+    }
+}
+impl LogLevel<'_> {
+    pub const fn get_name(&self) -> &str {
+        return self.name;
+    }
+    pub const fn get_severity(&self) -> u32 {
+        return self.severity;
+    }
+}
+impl Into<u32> for LogLevel<'_> {
+    fn into(self) -> u32 {
+        return self.severity;
+    }
+}
+unsafe impl Sync for LogLevel<'_> {}

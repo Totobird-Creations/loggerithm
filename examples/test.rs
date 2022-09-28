@@ -1,16 +1,14 @@
-use loggerithm;
-use loggerithm::Logger;
 use loggerithm::{register, log};
 use loggerithm::level::{TRACE, DEBUG, INFO, NOTICE, SUCCESS, FAILURE, WARN, ERROR, FATAL};
 
 fn main() {
-    loggerithm::log!(TRACE   , "Test message");
-    loggerithm::log!(DEBUG   , "Test message");
-    loggerithm::log!(INFO    , "Test message");
-    loggerithm::log!(NOTICE  , "Test message");
-    loggerithm::log!(SUCCESS , "Test message");
-    loggerithm::log!(FAILURE , "Test message");
-    loggerithm::log!(WARN    , "Test message");
-    loggerithm::log!(ERROR   , "Test message");
-    loggerithm::log!(FATAL   , "Test message");
+    log!(TRACE   , "Test message");
+    log!(DEBUG   , "Test message");
+    log!(INFO    , "Test message");
+    log!(NOTICE  , "Test message");
+    log!(SUCCESS , "Test message");
+    log!(FAILURE , "Test message");
+    log!(WARN    , "Test message");
+    log!(ERROR   , "Test message");
+    log!(FATAL   , "Test message");
 }
