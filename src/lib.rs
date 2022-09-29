@@ -1,5 +1,6 @@
 #![allow(unused_parens)]
 
+use std::fmt;
 
 use colored::Colorize;
 use chrono;
@@ -7,89 +8,10 @@ use chrono::DateTime;
 
 pub mod internal;
 pub mod level;
+pub mod logger;
+use logger::Logger;
 use level::LogLevel;
 
-pub mod ext {
-    pub use static_init::dynamic;
-}
-
-
-
-// An object that determines how
-// logging should be displayed.
-//
-// By default, `Logger::default()` is used
-// for logging text. For information on how
-// to create custom logger, see `examples/
-// custom_logger.rs`.
-pub struct Logger {
-    min_severity : u32,
-    targets      : Vec<Box<dyn Fn(&LogContext)>>
-}
-impl Logger {
-    pub fn new() -> Logger {
-        return Logger {
-            min_severity : 0,
-            targets      : vec![]
-        };
-    }
-}
-impl Logger {
-    // Sets the minimum severity index
-    // required for a message to be logged.
-    pub fn set_min_severity(mut self, min_severity : &LogLevel) -> Logger {
-        self.min_severity = min_severity.get_severity();
-        return self;
-    }
-    // Adds a function callback that
-    // will be run when a message is logged.
-    pub fn add_target<F : 'static>(mut self, target : F) -> Logger
-        where F : Fn(&LogContext)
-    {
-        self.targets.push(Box::new(target));
-        return self;
-    }
-}
-impl Logger {
-    fn create_context<'l>(&'l self, level : &'l LogLevel, module : String, position : (u32, u32), text : String) -> LogContext<'l> {
-        return LogContext {
-            logger   : self,
-            time     : chrono::Utc::now(),
-            module   : module,
-            position : position,
-            level    : level,
-            text     : text
-        };
-    }
-    // see `loggerithm::log!`
-    pub fn log(&self, level : &LogLevel, module : String, position : (u32, u32), text : String) {
-        if (level.get_severity() >= self.min_severity) {
-            let context = self.create_context(level, module, position, text);
-            for target in &self.targets {
-                target(&context);
-            }
-        }
-    }
-}
-impl Logger {
-    // Create a logger object with the
-    // default severity index and the
-    // log target.
-    pub fn default<'l>() -> Logger {
-        return Logger::new()
-            .set_min_severity(&level::INFO)
-            .add_target(|context| {
-                println!(
-                    " [ {} ] [ {} ] {}",
-                    context.time_local()
-                        .format("%y-%m-%d %H:%M:%S.%f").to_string()
-                        .green().dimmed(),
-                    context.level_name_fp(),
-                    context.formatted(context.message())
-                )
-            })
-    }
-}
 
 
 // Passed as an argument when the log
@@ -163,6 +85,11 @@ impl LogContext<'_> {
         return format!("{:01$}", text, max_level_len + (text.len() - len));
     }
 }
+impl fmt::Display for LogContext<'_> {
+    fn fmt(&self, f : &mut fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        return write!(f, "LOGCONTEXT");
+    }
+}
 
 
 
@@ -170,32 +97,21 @@ impl LogContext<'_> {
 #[macro_export]
 macro_rules! logger {
     (super) => {
-        use static_init::dynamic;
-        #[dynamic]
-        static __LOGGER : () = {
-            unsafe {$crate::internal::LOGGERS.write()}
-                .insert(module_path!().to_string(), $crate::internal::LoggerLocation::Super);
-        };
+        $crate::logger_internal!($crate::internal::LoggerLocation::Super);
     };
     ($logger:expr) => {
-        use static_init::dynamic;
-        #[dynamic]
-        static __LOGGER : () = {
-            unsafe {$crate::internal::LOGGERS.write()}
-                .insert(module_path!().to_string(), $crate::internal::LoggerLocation::Here($logger));
-        };
+        $crate::logger_internal!($crate::internal::LoggerLocation::Here($logger));
     };
 }
 
 // Call the target callbacks of the logger in the current module.
 #[macro_export]
 macro_rules! log {
-    ($level:expr, $($fmt:tt)*) => {{
+    ($level:ident, $($fmt:tt)*) => {{
         let module = module_path!().to_string();
-        // TODO : FIX CALLBACK NOT BEING RUN.
         let id_opt = $crate::internal::run_module_logger(module, |logger| {
             logger.log(
-                $level,
+                $level::get(),
                 module_path!().to_string(), (line!(), column!()),
                 format!($($fmt)*)
             )

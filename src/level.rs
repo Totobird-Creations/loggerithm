@@ -1,37 +1,8 @@
-use static_init::dynamic;
+use std::fmt;
+
 use colored::{ColoredString, Colorize};
 
 use crate::internal;
-
-
-
-#[dynamic]
-pub static TRACE : LogLevel = LogLevel::new("TRACE", 5)
-    .formatted(|v| v.bright_black());
-#[dynamic]
-pub static DEBUG : LogLevel = LogLevel::new("DEBUG", 10)
-    .formatted(|v| v.white().dimmed());
-#[dynamic]
-pub static INFO : LogLevel = LogLevel::new("INFO", 20)
-    .formatted(|v| v.cyan().dimmed());
-#[dynamic]
-pub static NOTICE : LogLevel = LogLevel::new("NOTICE", 25)
-    .formatted(|v| v.bright_cyan());
-#[dynamic]
-pub static SUCCESS : LogLevel = LogLevel::new("SUCCESS", 25)
-    .formatted(|v| v.green());
-#[dynamic]
-pub static WARN : LogLevel = LogLevel::new("WARN", 30)
-    .formatted(|v| v.yellow());
-#[dynamic]
-pub static FAILURE : LogLevel = LogLevel::new("FAILURE", 35)
-    .formatted(|v| v.red());
-#[dynamic]
-pub static ERROR : LogLevel = LogLevel::new("ERROR", 40)
-    .formatted(|v| v.bright_red().bold());
-#[dynamic]
-pub static FATAL : LogLevel = LogLevel::new("FATAL", 50)
-    .formatted(|v| v.bright_white().bold().on_red());
 
 
 
@@ -77,4 +48,60 @@ impl LogLevel {
         return (self.formatter)(text).to_string();
     }
 }
+impl fmt::Display for LogLevel {
+    fn fmt(&self, f : &mut fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        return write!(f, "{}.{}", self.get_name(), self.get_severity());
+    }
+}
 unsafe impl Sync for LogLevel {}
+
+
+
+#[macro_export]
+macro_rules! log_level {
+    ($name:ident, $logger:expr) => {
+        #[allow(non_snake_case)]
+        pub mod $name {
+            use static_init::dynamic;
+            use $crate::level::LogLevel;
+            #[allow(unused_imports)]
+            use colored::{ColoredString, Colorize};
+            #[dynamic]
+            static OBJECT : LogLevel = $logger;
+            pub fn get<'l>() -> &'l LogLevel {
+                return &OBJECT;
+            }
+        }
+    };
+}
+pub(crate) use log_level;
+
+
+
+log_level!(TRACE, LogLevel::new("TRACE", 5)
+    .formatted(|v| v.bright_black())
+);
+log_level!(DEBUG, LogLevel::new("DEBUG", 10)
+    .formatted(|v| v.white().dimmed())
+);
+log_level!(INFO, LogLevel::new("INFO", 20)
+    .formatted(|v| v.cyan().dimmed())
+);
+log_level!(NOTICE, LogLevel::new("NOTICE", 25)
+    .formatted(|v| v.bright_cyan())
+);
+log_level!(SUCCESS, LogLevel::new("SUCCESS", 25)
+    .formatted(|v| v.green())
+);
+log_level!(WARN, LogLevel::new("WARN", 30)
+    .formatted(|v| v.yellow())
+);
+log_level!(FAILURE, LogLevel::new("FAILURE", 35)
+    .formatted(|v| v.red())
+);
+log_level!(ERROR, LogLevel::new("ERROR", 40)
+    .formatted(|v| v.bright_red().bold())
+);
+log_level!(FATAL, LogLevel::new("FATAL", 50)
+    .formatted(|v| v.bright_white().bold().on_red())
+);

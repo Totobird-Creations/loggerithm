@@ -1,2 +1,2 @@
-rustup default nightly
-cargo +nightly run --example test
+#rustup default nightly
+cargo run --example module_tree
