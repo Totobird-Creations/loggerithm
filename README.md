@@ -43,15 +43,17 @@ See `examples/basic_logging.rs`.
 #### Custom Logging Levels
 ```rust
 use loggerithm::{logger, log_level, log};
+use loggerithm::level::INFO;
 
 logger!(super);
 
-log_level!(MY_LEVEL, LogLevel::new("AMAZING_LEVEL_NAME", 20));
-//                                  |                    ^ The severity of the level. To be seen, this must be above the minimum set for the active logger.
-//                                  ^ The name of the logger. This is what's displayed in the console.
+log_level!(MY_AMAZING_CUSTOM_LOGGING_LEVEL, LogLevel::new(30)
+    .formatted(|v| v.magenta().on_white().reverse())
+);
 
 fn main() {
-    log!(MY_LEVEL, "Hello, this is my spaghetti code.");
+    log!(INFO, "This example shows how to create a custom logging level and add formatting to it.");
+    log!(MY_AMAZING_CUSTOM_LOGGING_LEVEL, "This used my custom level, now with formatting!");
 }
 ```
 See `examples/custom_level.rs` and `examples/custom_level_formatting.rs`.

@@ -50,7 +50,8 @@ mod module_other {
     pub fn main() {
         // None is set for this module so `module_other_2` will get from the parent of this module.
         module_other_2::main();
-        log!(INFO, "This will fail because no logger is set for `module_tree::module_other`.");
+        // Try copying this file and uncommenting the line below. It will not compile because there is no logger set for this module.
+        //log!(INFO, "This will not compile because no logger is set for `module_tree::module_other`.");
     }
 }
 
