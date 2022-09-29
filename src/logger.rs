@@ -28,8 +28,8 @@ impl Logger {
 impl Logger {
     // Sets the minimum severity index
     // required for a message to be logged.
-    pub fn set_min_severity(mut self, min_severity : &LogLevel) -> Logger {
-        self.min_severity = min_severity.get_severity();
+    pub fn set_min_severity(mut self, min_severity : u32) -> Logger {
+        self.min_severity = min_severity;
         return self;
     }
     // Adds a function callback that
@@ -68,13 +68,14 @@ impl Logger {
     // log target.
     pub fn default<'l>() -> Logger {
         return Logger::new()
-            .set_min_severity(INFO::get())
+            .set_min_severity(INFO::severity())
             .add_target(|context| {
                 println!(
-                    " [ {} ] [ {} ] {}",
+                    " [ {:0>9} ] [ {} ] [ {} ] {}",
                     context.time_local()
-                        .format("%y-%m-%d %H:%M:%S.%f").to_string()
+                        .format("%Y-%m-%d %H:%M:%S.%f").to_string()
                         .green().dimmed(),
+                    context.module_p(),
                     context.level_name_fp(),
                     context.formatted(context.message())
                 )
@@ -85,4 +86,24 @@ impl fmt::Display for Logger {
     fn fmt(&self, f : &mut fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         return write!(f, "LOGGER");
     }
+}
+
+
+
+
+
+// Set the logger of a module and any submodules that don't override it.
+#[macro_export]
+macro_rules! logger {
+    (super) => {
+        $crate::logger_internal!($crate::internal::LoggerLocation::Super);
+    };
+    ($logger:expr) => {
+        $crate::logger_internal!($crate::internal::LoggerLocation::Here({
+            use colored::Colorize;
+            use $crate::logger::Logger;
+            use $crate::level::{TRACE, DEBUG, INFO, NOTICE, SUCCESS, FAILURE, WARN, ERROR, FATAL};
+            $logger
+        }));
+    };
 }

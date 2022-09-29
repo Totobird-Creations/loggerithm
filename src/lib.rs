@@ -38,6 +38,22 @@ impl LogContext<'_> {
     pub fn module(&self) -> String {
         return String::from(&self.module);
     }
+    // Get the level name that has been padded.
+    pub fn module_p(&self) -> String {
+        return self.padded_module(self.module(), self.module().len());
+    }
+    // Get the level name that has been formatted.
+    pub fn module_f(&self) -> String {
+        return self.formatted(self.module());
+    }
+    // Get the level name that has been padded then formatted.
+    pub fn module_pf(&self) -> String {
+        return self.formatted(self.module_p());
+    }
+    // Get the level name that has been formatted then padded.
+    pub fn module_fp(&self) -> String {
+        return self.padded_module(self.module_f(), self.module().len());
+    }
     // Get the line number that the log command was run at.
     pub fn line(&self) -> u32 {
         return self.position.0;
@@ -81,8 +97,13 @@ impl LogContext<'_> {
         return self.level.format(text);
     }
     fn padded_level_name(&self, text : String, len : usize) -> String {
-        let max_level_len = unsafe {internal::MAX_LEVEL_LEN};
-        return format!("{:01$}", text, max_level_len + (text.len() - len));
+        return self.padded(text, len, unsafe {internal::MAX_LEVEL_NAME_LEN});
+    }
+    fn padded_module(&self, text : String, len : usize) -> String {
+        return self.padded(text, len, unsafe {internal::MAX_MODULE_LEN});
+    }
+    fn padded(&self, text : String, len : usize, target_len : usize) -> String {
+        return format!("{:01$}", text, target_len + (text.len() - len));
     }
 }
 impl fmt::Display for LogContext<'_> {
@@ -93,23 +114,13 @@ impl fmt::Display for LogContext<'_> {
 
 
 
-// Set the logger of a module and any submodules that don't override it.
-#[macro_export]
-macro_rules! logger {
-    (super) => {
-        $crate::logger_internal!($crate::internal::LoggerLocation::Super);
-    };
-    ($logger:expr) => {
-        $crate::logger_internal!($crate::internal::LoggerLocation::Here($logger));
-    };
-}
 
 // Call the target callbacks of the logger in the current module.
 #[macro_export]
 macro_rules! log {
     ($level:ident, $($fmt:tt)*) => {{
         let module = module_path!().to_string();
-        let id_opt = $crate::internal::run_module_logger(module, |logger| {
+        let id_opt = $crate::internal::run_module_logger(module, true, |logger| {
             logger.log(
                 $level::get(),
                 module_path!().to_string(), (line!(), column!()),

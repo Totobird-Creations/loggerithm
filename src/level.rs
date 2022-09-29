@@ -23,9 +23,9 @@ impl LogLevel {
         return level;
     }
     fn init(&self) {
-        if (unsafe {internal::MAX_LEVEL_LEN} < self.name.len()) {
+        if (unsafe {internal::MAX_LEVEL_NAME_LEN} < self.name.len()) {
             unsafe {
-                internal::MAX_LEVEL_LEN = self.name.len();
+                internal::MAX_LEVEL_NAME_LEN = self.name.len();
             }
         }
     }
@@ -68,8 +68,8 @@ macro_rules! log_level {
             use colored::{ColoredString, Colorize};
             #[dynamic]
             static OBJECT : LogLevel = $logger;
-            pub fn get<'l>() -> &'l LogLevel {
-                return &OBJECT;
+            pub fn severity() -> u32 {
+                return OBJECT.severity;
             }
         }
     };

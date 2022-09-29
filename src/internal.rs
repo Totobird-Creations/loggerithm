@@ -32,28 +32,37 @@ pub static mut LOGGERS : HashMap<String, LoggerLocation> = {
     map
 };
 
-pub static mut MAX_LEVEL_LEN : usize = 0;
+pub static mut MAX_LEVEL_NAME_LEN : usize = 0;
+pub static mut MAX_MODULE_LEN     : usize = 0;
 
 
 
-pub fn run_module_logger<F>(module : String, callback : F)
+pub fn run_module_logger<F>(module : String, first : bool, callback : F)
     where F : Fn(&Logger)
 {
+    let mut next_module_vec = module.split("::").collect::<Vec<&str>>();
+    next_module_vec.remove(next_module_vec.len() - 1);
+    let next_module = next_module_vec.join("::");
+
     #[allow(unused_unsafe)]
     match (unsafe {LOGGERS.read()}.get(&module)) {
         Some(location) => {
             match (location) {
                 LoggerLocation::Super => {
-                    let mut next_module = module.split("::").collect::<Vec<&str>>();
-                    next_module.remove(next_module.len() - 1);
-                    run_module_logger(next_module.join("::"), callback);
+                    run_module_logger(next_module, false, callback);
                 },
                 LoggerLocation::Here(logger) => {
                     callback(&logger);
                 }
             }
         },
-        None => panic!("Logger for module `{}` not registered.", module)
+        None => {
+            if (first) {
+                panic!("Logger for module `{}` not registered.", module);
+            } else {
+                run_module_logger(next_module, false, callback);
+            }
+        }
     }
 }
 
@@ -66,10 +75,16 @@ macro_rules! logger_internal {
             use static_init::dynamic;
             #[dynamic]
             static __LOGGER : () = {
-                let mut module = module_path!().split("::").collect::<Vec<&str>>();
-                module.remove(module.len() - 1);
+                let mut module_vec = module_path!().split("::").collect::<Vec<&str>>();
+                module_vec.remove(module_vec.len() - 1);
+                let module = module_vec.join("::");
+                if (unsafe {$crate::internal::MAX_MODULE_LEN} < module.len()) {
+                    unsafe {
+                        $crate::internal::MAX_MODULE_LEN = module.len();
+                    }
+                }
                 unsafe {$crate::internal::LOGGERS.write()}
-                    .insert(module.join("::"), $location);
+                    .insert(module, $location);
             };
         }
     };
