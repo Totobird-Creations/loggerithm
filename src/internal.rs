@@ -1,31 +1,50 @@
 use std::collections::HashMap;
-use std::sync::Mutex;
 
-use once_cell::sync::Lazy;
-use colored::Colorize;
+use static_init::dynamic;
 
 use crate::Logger;
 
 
+pub enum LoggerLocation {
+    Super,
+    Here(Logger)
+}
+unsafe impl Send for LoggerLocation {}
 
-pub static mut LOGGERS : Lazy<Mutex<HashMap<String, Logger>>> = Lazy::new(|| {
+pub struct LoggerRef {
+    pub module : String
+}
+
+
+#[dynamic]
+pub static mut LOGGERS : HashMap<String, LoggerLocation> = {
     let mut map = HashMap::new();
-    map.insert(String::new(), Logger::default());
-    return Mutex::new(map);
-});
+    map.insert(String::new(), LoggerLocation::Here(Logger::default()));
+    map
+};
 
 pub static mut MAX_LEVEL_LEN : usize = 0;
 
 
 
-pub fn get_logger_name(mut name : String) -> String {
-    let loggers = unsafe {LOGGERS.lock().unwrap()};
-    loop {
-        if (name == "" || loggers.contains_key(&name)) {
-            return name;
-        }
-        let mut split = name.split("::").collect::<Vec<&str>>();
-        split.remove(split.len() - 1);
-        name = split.join("::");
+pub fn run_module_logger<F>(module : String, callback : F)
+    where F : Fn(&Logger)
+{
+    #[allow(unused_unsafe)]
+    match (unsafe {LOGGERS.write()}.get(&module)) {
+        Some(location) => {
+            match (location) {
+                LoggerLocation::Super => {
+                    // ERRORS HAPPEN HERE
+                    let mut next_module = module.split("::").collect::<Vec<&str>>();
+                    next_module.remove(next_module.len() - 1);
+                    run_module_logger(next_module.join("::"), callback);
+                },
+                LoggerLocation::Here(logger) => {
+                    callback(&logger);
+                }
+            }
+        },
+        None => panic!("Logger for module `{}` not registered.", module)
     }
 }

@@ -1,5 +1,7 @@
-use loggerithm::log;
+use loggerithm::{log, logger};
 use loggerithm::level::{TRACE, DEBUG, INFO, NOTICE, SUCCESS, FAILURE, WARN, ERROR, FATAL};
+
+logger!(super);
 
 fn main() {
     log!(&TRACE, "Test message");

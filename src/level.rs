@@ -1,54 +1,52 @@
-use once_cell::sync::Lazy;
+use static_init::dynamic;
+use colored::{ColoredString, Colorize};
 
 use crate::internal;
 
 
 
-pub type LogLevelInside = LogLevelHandler<'static>;
-pub type LogLevel       = Lazy<LogLevelInside>;
+#[dynamic]
+pub static TRACE : LogLevel = LogLevel::new("TRACE", 5)
+    .formatted(|v| v.bright_black());
+#[dynamic]
+pub static DEBUG : LogLevel = LogLevel::new("DEBUG", 10)
+    .formatted(|v| v.white().dimmed());
+#[dynamic]
+pub static INFO : LogLevel = LogLevel::new("INFO", 20)
+    .formatted(|v| v.cyan().dimmed());
+#[dynamic]
+pub static NOTICE : LogLevel = LogLevel::new("NOTICE", 25)
+    .formatted(|v| v.bright_cyan());
+#[dynamic]
+pub static SUCCESS : LogLevel = LogLevel::new("SUCCESS", 25)
+    .formatted(|v| v.green());
+#[dynamic]
+pub static WARN : LogLevel = LogLevel::new("WARN", 30)
+    .formatted(|v| v.yellow());
+#[dynamic]
+pub static FAILURE : LogLevel = LogLevel::new("FAILURE", 35)
+    .formatted(|v| v.red());
+#[dynamic]
+pub static ERROR : LogLevel = LogLevel::new("ERROR", 40)
+    .formatted(|v| v.bright_red().bold());
+#[dynamic]
+pub static FATAL : LogLevel = LogLevel::new("FATAL", 50)
+    .formatted(|v| v.bright_white().bold().on_red());
 
-pub static TRACE   : LogLevel = new_log_level!("TRACE"   , 5  );
-pub static DEBUG   : LogLevel = new_log_level!("DEBUG"   , 10 );
-pub static INFO    : LogLevel = new_log_level!("INFO"    , 20 );
-pub static NOTICE  : LogLevel = new_log_level!("NOTICE"  , 25 );
-pub static SUCCESS : LogLevel = new_log_level!("SUCCESS" , 25 );
-pub static WARN    : LogLevel = new_log_level!("WARN"    , 30 );
-pub static FAILURE : LogLevel = new_log_level!("FAILURE" , 35 );
-pub static ERROR   : LogLevel = new_log_level!("ERROR"   , 40 );
-pub static FATAL   : LogLevel = new_log_level!("FATAL"   , 50 );
 
 
-
-// Create a new log level.
-#[macro_export]
-macro_rules! new_log_level {
-    ($name:tt, $severity:tt) => {{
-        use once_cell::sync::Lazy;
-        Lazy::new(|| {
-            if ($name.len() > unsafe {$crate::internal::MAX_LEVEL_LEN}) {
-                unsafe {
-                    $crate::internal::MAX_LEVEL_LEN = $name.len();
-                }
-            }
-            return $crate::level::LogLevelHandler::new($name, $severity);
-        })
-    }}
+pub struct LogLevel {
+    name      : String,
+    severity  : u32,
+    formatter : Box<dyn Fn(String) -> ColoredString>
 }
-pub(crate) use new_log_level;
-
-
-
-#[derive(Eq, PartialEq, Hash)]
-pub struct LogLevelHandler<'l> {
-    name     : &'l str,
-    severity : u32
-}
-impl LogLevelHandler<'_> {
-    pub fn new<'l, S : Into<&'l str>>(name_s : S, severity : u32) -> LogLevelHandler<'l> {
+impl LogLevel {
+    pub fn new<S : Into<String>>(name_s : S, severity : u32) -> LogLevel {
         let name  = name_s.into();
-        let level = LogLevelHandler {
+        let level = LogLevel {
             name,
-            severity
+            severity,
+            formatter : Box::new(|v| v.normal())
         };
         level.init();
         return level;
@@ -61,13 +59,22 @@ impl LogLevelHandler<'_> {
         }
     }
     pub fn void(&self) {}
-}
-impl LogLevelHandler<'_> {
-    pub const fn get_name(&self) -> &str {
-        return self.name;
+    pub fn formatted<F : 'static>(mut self, formatter : F) -> LogLevel
+        where F : Fn(String) -> ColoredString
+    {
+        self.formatter = Box::new(formatter);
+        return self;
     }
-    pub const fn get_severity(&self) -> u32 {
+}
+impl LogLevel {
+    pub fn get_name(&self) -> String {
+        return String::from(&self.name);
+    }
+    pub fn get_severity(&self) -> u32 {
         return self.severity;
     }
+    pub fn format(&self, text : String) -> String {
+        return (self.formatter)(text).to_string();
+    }
 }
-unsafe impl Sync for LogLevelHandler<'_> {}
+unsafe impl Sync for LogLevel {}
