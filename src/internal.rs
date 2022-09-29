@@ -2,27 +2,17 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 
 use once_cell::sync::Lazy;
+use colored::Colorize;
 
-use crate::level;
 use crate::Logger;
 
 
 
 pub static mut LOGGERS : Lazy<Mutex<HashMap<String, Logger>>> = Lazy::new(|| {
     let mut map = HashMap::new();
-    map.insert(String::new(), Logger::new()
-        .add_target(|context| {
-            println!("[ {} ] [ {}:{}:{} ]",
-                context.level_npf(),
-                context.module(), context.line(), context.column()
-            )
-        })
-        .default_formatting()
-    );
+    map.insert(String::new(), Logger::default());
     return Mutex::new(map);
 });
-
-pub static mut MIN_SEVERITY : u32 = level::INFO.get_severity();
 
 pub static mut MAX_LEVEL_LEN : usize = 0;
 

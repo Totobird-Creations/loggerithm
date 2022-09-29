@@ -4,43 +4,48 @@ use crate::internal;
 
 
 
-pub static TRACE   : &'static LogLevel = &LogLevel::new_const("TRACE"   , 5  );
-pub static DEBUG   : &'static LogLevel = &LogLevel::new_const("DEBUG"   , 10 );
-pub static INFO    : &'static LogLevel = &LogLevel::new_const("INFO"    , 20 );
-pub static NOTICE  : &'static LogLevel = &LogLevel::new_const("NOTICE"  , 25 );
-pub static SUCCESS : &'static LogLevel = &LogLevel::new_const("SUCCESS" , 25 );
-pub static FAILURE : &'static LogLevel = &LogLevel::new_const("FAILURE" , 25 );
-pub static WARN    : &'static LogLevel = &LogLevel::new_const("WARN"    , 30 );
-pub static ERROR   : &'static LogLevel = &LogLevel::new_const("ERROR"   , 40 );
-pub static FATAL   : &'static LogLevel = &LogLevel::new_const("FATAL"   , 50 );
+pub type LogLevelInside = LogLevelHandler<'static>;
+pub type LogLevel       = Lazy<LogLevelInside>;
+
+pub static TRACE   : LogLevel = new_log_level!("TRACE"   , 5  );
+pub static DEBUG   : LogLevel = new_log_level!("DEBUG"   , 10 );
+pub static INFO    : LogLevel = new_log_level!("INFO"    , 20 );
+pub static NOTICE  : LogLevel = new_log_level!("NOTICE"  , 25 );
+pub static SUCCESS : LogLevel = new_log_level!("SUCCESS" , 25 );
+pub static WARN    : LogLevel = new_log_level!("WARN"    , 30 );
+pub static FAILURE : LogLevel = new_log_level!("FAILURE" , 35 );
+pub static ERROR   : LogLevel = new_log_level!("ERROR"   , 40 );
+pub static FATAL   : LogLevel = new_log_level!("FATAL"   , 50 );
 
 
 
-pub fn set_global_min_severity<I : Into<u32>>(level : I) {
-    unsafe {
-        internal::MIN_SEVERITY = level.into();
-    }
+#[macro_export]
+macro_rules! new_log_level {
+    ($name:tt, $severity:tt) => {{
+        use once_cell::sync::Lazy;
+        Lazy::new(|| {
+            if ($name.len() > unsafe {$crate::internal::MAX_LEVEL_LEN}) {
+                unsafe {
+                    $crate::internal::MAX_LEVEL_LEN = $name.len();
+                }
+            }
+            return $crate::level::LogLevelHandler::new($name, $severity);
+        })
+    }}
 }
+pub(crate) use new_log_level;
 
 
 
-#[derive(PartialEq, Eq, Hash)]
-pub struct LogLevel<'l> {
+#[derive(Eq, PartialEq, Hash)]
+pub struct LogLevelHandler<'l> {
     name     : &'l str,
     severity : u32
 }
-impl LogLevel<'_> {
-    pub const fn new_const(name : &str, severity : u32) -> LogLevel {
-        let level = LogLevel {
-            name,
-            severity
-        };
-        let lazy = Lazy::<(), _>::new(|| {level.init();});
-        return level;
-    }
-    pub fn new<'l, S : Into<&'l str>>(name_s : S, severity : u32) -> LogLevel<'l> {
+impl LogLevelHandler<'_> {
+    pub fn new<'l, S : Into<&'l str>>(name_s : S, severity : u32) -> LogLevelHandler<'l> {
         let name  = name_s.into();
-        let level = LogLevel {
+        let level = LogLevelHandler {
             name,
             severity
         };
@@ -54,8 +59,9 @@ impl LogLevel<'_> {
             }
         }
     }
+    pub fn void(&self) {}
 }
-impl LogLevel<'_> {
+impl LogLevelHandler<'_> {
     pub const fn get_name(&self) -> &str {
         return self.name;
     }
@@ -63,9 +69,4 @@ impl LogLevel<'_> {
         return self.severity;
     }
 }
-impl Into<u32> for LogLevel<'_> {
-    fn into(self) -> u32 {
-        return self.severity;
-    }
-}
-unsafe impl Sync for LogLevel<'_> {}
+unsafe impl Sync for LogLevelHandler<'_> {}

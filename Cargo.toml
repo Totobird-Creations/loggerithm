@@ -1,13 +1,32 @@
 [package]
-name = "loggerithm"
-version = "0.1.0"
-authors = ["Totobird Creations"]
-edition = "2021"
+name          = "loggerithm"
+description   = "A logging library for everyone."
+version       = "0.1.0"
+keywords      = ["log", "logging", "logger"]
+categories    = ["development-tools::debugging"]
+
+homepage      = "https://github.com/Totobird-Creations/loggerithm"
+repository    = "https://github.com/Totobird-Creations/loggerithm"
+documentation = "https://github.com/Totobird-Creations/loggerithm/wiki"
+readme        = "README.md"
+
+authors       = ["Totobird Creations"]
+license       = "MIT"
+
+exclude       = [
+    "/examples",
+    ".replit",
+    ".replit.sh",
+    "replit.nix"
+]
+
+edition       = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-once_cell = "1.15.0"
-colored = "2.0.0"
+once_cell  = "1.15.0"
+colored    = "2.0.0"
+chrono     = "0.4.22"
 
 [lib]
