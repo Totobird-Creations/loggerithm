@@ -19,6 +19,7 @@ pub static FATAL   : LogLevel = new_log_level!("FATAL"   , 50 );
 
 
 
+// Create a new log level.
 #[macro_export]
 macro_rules! new_log_level {
     ($name:tt, $severity:tt) => {{
