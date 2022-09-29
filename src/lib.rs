@@ -122,7 +122,7 @@ macro_rules! log {
         let module = module_path!().to_string();
         let id_opt = $crate::internal::run_module_logger(module, true, |logger| {
             logger.log(
-                $level::get(),
+                $level::level(),
                 module_path!().to_string(), (line!(), column!()),
                 format!($($fmt)*)
             )

@@ -58,6 +58,22 @@ See `examples/custom_level.rs` and `examples/custom_level_formatting.rs`.
 
 #### Custom Logger
 ```rust
+use loggerithm::{logger, log};
+use loggerithm::level::{INFO, WARN};
 
+logger!(Logger::new()
+    .set_min_severity(WARN::severity())
+    .add_target(|context| {
+        println!("{} | {} | {}", context.time_local(), context.level_name_fp(), context.message())
+    })
+);
+
+fn main() {
+    log!(WARN, "This is logged.");
+    log!(INFO, "This is not logged because it is below the minimum severity.");
+}
 ```
 See `examples/custom_logger.rs`
+
+#### Modules
+See `examples/module_tree.rs` for information on how loggers work across modules.

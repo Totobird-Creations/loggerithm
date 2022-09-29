@@ -68,8 +68,11 @@ macro_rules! log_level {
             use colored::{ColoredString, Colorize};
             #[dynamic]
             static OBJECT : LogLevel = $logger;
+            pub fn level<'l>() -> &'l LogLevel {
+                return &OBJECT;
+            }
             pub fn severity() -> u32 {
-                return OBJECT.severity;
+                return OBJECT.get_severity();
             }
         }
     };
