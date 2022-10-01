@@ -18,6 +18,8 @@ use logger::Logger;
 use level::LogLevel;
 
 pub mod ext {
+    extern crate colored;
+    extern crate static_init;
     pub use colored::Colorize;
     pub use static_init::dynamic;
 }
