@@ -19,10 +19,6 @@ use level::LogLevel;
 
 
 
-logger!(super);
-
-
-
 /// Passed as an argument when the log
 /// target callback is called.
 pub struct LogContext<'l> {
@@ -117,6 +113,42 @@ impl LogContext<'_> {
 }
 
 
+
+/// Register a logger for the module
+/// and any submodules that don't
+/// override it.
+/// 
+/// # Arguments
+/// 
+/// * `target` - A logger for the current module.
+/// 
+/// * * `super` - Use the logger from the parent module.
+/// * * Use a custom logger.
+/// 
+/// # Examples
+/// 
+/// ```
+/// logger!(super);
+/// ```
+/// ```
+/// logger!(Logger::new()
+///     .set_min_severity(NOTICE::severity())
+/// );
+/// ```
+#[macro_export]
+macro_rules! logger {
+    (super) => {
+        $crate::__logger_internal!($crate::internal::LoggerLocation::Super);
+    };
+    ($logger:expr) => {
+        $crate::__logger_internal!($crate::internal::LoggerLocation::Here({
+            use colored::Colorize;
+            use $crate::logger::Logger;
+            use $crate::level::{TRACE, DEBUG, INFO, NOTICE, SUCCESS, FAILURE, WARN, ERROR, FATAL};
+            $logger
+        }));
+    };
+}
 
 
 /// Call the target callbacks of the

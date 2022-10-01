@@ -100,3 +100,41 @@ pub fn run_module_logger<F>(module : String, first : bool, callback : F)
         }
     }
 }
+
+
+#[doc(hidden)]
+/// Internal macro.
+/// 
+/// For the most part, unless you
+/// know what you're doing, don't
+/// touch this macro.
+#[macro_export]
+macro_rules! __logger_internal {
+    ($location:expr) => {
+        /// A logger.
+        #[allow(non_snake_case)]
+        mod __loggerithm__LOGGER {
+            use static_init::dynamic;
+            /// The logger handler object.
+            #[dynamic]
+            static LOGGER : () = {
+                let mut module_vec = module_path!().split("::").collect::<Vec<&str>>();
+                module_vec.remove(module_vec.len() - 1);
+                let module = module_vec.join("::");
+                if (unsafe {$crate::internal::MAX_MODULE_LEN} < module.len()) {
+                    unsafe {
+                        $crate::internal::MAX_MODULE_LEN = module.len();
+                    }
+                }
+                #[allow(unused_unsafe)]
+                unsafe {$crate::internal::LOGGERS.write()}
+                    .insert(module, $location);
+            };
+            /// Used by the `log!` macro to
+            /// check if there is a logger
+            /// registered for the module.
+            #[allow(dead_code)]
+            pub fn void() {}
+        }
+    };
+}
