@@ -1,4 +1,4 @@
-#![doc(hidden)]
+//#![doc(hidden)]
 //! Internal objects and functions.
 //! 
 //! For the most part, unless you know 

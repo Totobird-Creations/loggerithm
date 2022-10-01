@@ -17,10 +17,6 @@ pub mod logger;
 use logger::Logger;
 use level::LogLevel;
 
-pub mod ext {
-    pub use static_init;
-}
-
 
 
 /// Passed as an argument when the log
@@ -136,7 +132,7 @@ impl LogContext<'_> {
 /// ```
 /// ```
 /// logger!(Logger::new()
-///     .set_min_severity(NOTICE::severity())
+///     .set_min_severity(NOTICE::SEVERITY)
 /// );
 /// ```
 #[macro_export]

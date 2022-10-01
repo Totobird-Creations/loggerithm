@@ -180,10 +180,23 @@ macro_rules! log_level {
         pub mod $name {
             use super::*;
             extern crate static_init;
-            /// TODO
+            /// The log level object.
             #[static_init::dynamic]
             pub static LEVEL : $crate::level::LogLevel = $level.init(stringify!($name));
-            /// TODO
+            /// Get the severity value of the log
+            /// level.
+            /// 
+            /// # Returns
+            /// 
+            /// The severity of the level.
+            /// 
+            /// # Examples
+            /// 
+            /// ```
+            /// logger!(Logger::new()
+            ///     .set_min_severity(WARN::SEVERITY)
+            /// );
+            /// ```
             pub fn SEVERITY() -> u32 {
                 return LEVEL.get_severity();
             }
