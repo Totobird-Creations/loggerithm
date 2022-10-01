@@ -177,12 +177,11 @@ macro_rules! log_level {
         /// A logging level.
         #[allow(non_snake_case)]
         pub mod $name {
-            use static_init::dynamic;
             use $crate::level::LogLevel;
             #[allow(unused_imports)]
             use colored::{ColoredString, Colorize};
             /// The log level handler object.
-            #[dynamic]
+            #[$crate::ext::dynamic]
             static OBJECT : LogLevel = ($level).init(stringify!($name));
             /// Get a reference to the log level handler.
             pub fn level<'l>() -> &'l LogLevel {

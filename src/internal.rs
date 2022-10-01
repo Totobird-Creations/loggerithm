@@ -114,9 +114,8 @@ macro_rules! __logger_internal {
         /// A logger.
         #[allow(non_snake_case)]
         mod __loggerithm__LOGGER {
-            use static_init::dynamic;
             /// The logger handler object.
-            #[dynamic]
+            #[$crate::ext::dynamic]
             static LOGGER : () = {
                 let mut module_vec = module_path!().split("::").collect::<Vec<&str>>();
                 module_vec.remove(module_vec.len() - 1);

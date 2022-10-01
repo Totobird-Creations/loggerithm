@@ -17,6 +17,11 @@ pub mod logger;
 use logger::Logger;
 use level::LogLevel;
 
+pub mod ext {
+    pub use colored::Colorize;
+    pub use static_init::dynamic;
+}
+
 
 
 /// Passed as an argument when the log
@@ -142,7 +147,7 @@ macro_rules! logger {
     };
     ($logger:expr) => {
         $crate::__logger_internal!($crate::internal::LoggerLocation::Here({
-            use colored::Colorize;
+            use $crate::ext::Colorize;
             use $crate::logger::Logger;
             use $crate::level::{TRACE, DEBUG, INFO, NOTICE, SUCCESS, FAILURE, WARN, ERROR, FATAL};
             $logger
