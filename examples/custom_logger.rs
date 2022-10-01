@@ -1,8 +1,9 @@
 use loggerithm::{logger, log};
+use loggerithm::logger::Logger;
 use loggerithm::level::{INFO, WARN};
 
 logger!(Logger::new()
-    .set_min_severity(WARN::severity())
+    .set_min_severity(WARN::SEVERITY)
     .add_target(|context| {
         println!("{} | {} | {}", context.time_local(), context.level_name_fp(), context.message())
     })

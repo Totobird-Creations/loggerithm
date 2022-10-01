@@ -6,7 +6,8 @@
 # Cargo.toml
 
 [dependencies]
-loggerithm = "1"
+loggerithm  = "1"
+static_init = "1.0.3"
 ```
 
 #### Preparation

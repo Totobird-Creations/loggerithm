@@ -18,10 +18,7 @@ use logger::Logger;
 use level::LogLevel;
 
 pub mod ext {
-    extern crate colored;
-    extern crate static_init;
-    pub use colored::Colorize;
-    pub use static_init::dynamic;
+    pub use static_init;
 }
 
 
@@ -149,9 +146,7 @@ macro_rules! logger {
     };
     ($logger:expr) => {
         $crate::__logger_internal!($crate::internal::LoggerLocation::Here({
-            use $crate::ext::Colorize;
-            use $crate::logger::Logger;
-            use $crate::level::{TRACE, DEBUG, INFO, NOTICE, SUCCESS, FAILURE, WARN, ERROR, FATAL};
+            use super::*;
             $logger
         }));
     };
@@ -185,11 +180,11 @@ macro_rules! logger {
 #[macro_export]
 macro_rules! log {
     ($($level:ident)::*, $($fmt:tt)*) => {{
-        __loggerithm__LOGGER::void();
+        __loggerithm_LOGGER::void();
         let module = module_path!().to_string();
         let id_opt = $crate::internal::run_module_logger(module, true, |logger| {
             logger.log(logger.create_context(
-                ($($level)::*::level()),
+                &$($level)::*::LEVEL,
                 module_path!().to_string(), (line!(), column!()),
                 format!($($fmt)*)
             ));

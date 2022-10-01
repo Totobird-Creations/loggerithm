@@ -79,8 +79,7 @@ pub fn run_module_logger<F>(module : String, first : bool, callback : F)
     next_module_vec.remove(next_module_vec.len() - 1);
     let next_module = next_module_vec.join("::");
 
-    #[allow(unused_unsafe)]
-    match (unsafe {LOGGERS.read()}.get(&module)) {
+    match (LOGGERS.read().get(&module)) {
         Some(location) => {
             match (location) {
                 LoggerLocation::Super => {
@@ -113,9 +112,10 @@ macro_rules! __logger_internal {
     ($location:expr) => {
         /// A logger.
         #[allow(non_snake_case)]
-        mod __loggerithm__LOGGER {
+        mod __loggerithm_LOGGER {
+            extern crate static_init;
             /// The logger handler object.
-            #[$crate::ext::dynamic]
+            #[static_init::dynamic]
             static LOGGER : () = {
                 let mut module_vec = module_path!().split("::").collect::<Vec<&str>>();
                 module_vec.remove(module_vec.len() - 1);
@@ -125,7 +125,6 @@ macro_rules! __logger_internal {
                         $crate::internal::MAX_MODULE_LEN = module.len();
                     }
                 }
-                #[allow(unused_unsafe)]
                 unsafe {$crate::internal::LOGGERS.write()}
                     .insert(module, $location);
             };

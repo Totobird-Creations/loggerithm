@@ -4,7 +4,7 @@
 use colored::Colorize;
 
 use crate::LogContext;
-use crate::level::{LogLevel, INFO};
+use crate::level;
 
 
 /// An object that determines how logs
@@ -32,7 +32,7 @@ impl Logger {
     /// log target.
     pub fn default<'l>() -> Logger {
         return Logger::new()
-            .set_min_severity(INFO::severity())
+            .set_min_severity(level::INFO::SEVERITY)
             .add_target(|context| {
                 println!(
                     " [ {:0>9} ] [ {} ] [ {} ] {}",
@@ -48,8 +48,10 @@ impl Logger {
     }
     /// Sets the minimum severity index
     /// required for a message to be logged.
-    pub fn set_min_severity(mut self, min_severity : u32) -> Logger {
-        self.min_severity = min_severity;
+    pub fn set_min_severity<F>(mut self, min_severity : F) -> Logger
+        where F : Fn() -> u32
+    {
+        self.min_severity = min_severity();
         return self;
     }
     /// Adds a function callback that
@@ -79,7 +81,7 @@ impl Logger {
     /// # Returns
     /// 
     /// The generated LogContext.
-    pub fn create_context<'l>(&'l self, level : &'l LogLevel, module : String, position : (u32, u32), text : String) -> LogContext<'l> {
+    pub fn create_context<'l>(&'l self, level : &'l level::LogLevel, module : String, position : (u32, u32), text : String) -> LogContext<'l> {
         return LogContext {
             logger   : self,
             time     : chrono::Utc::now(),

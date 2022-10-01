@@ -12,11 +12,13 @@ mod module_test {
 
     use loggerithm::{logger, log};
     use loggerithm::level::INFO;
+    use loggerithm::logger::Logger;
+    use colored::Colorize;
 
     logger!(Logger::new()
         .add_target(|context| {
             println!(
-                " | {} | | {} | | {} | {} {}",
+                "| >{}< | >{}< | >{}< | {} {}",
                 context.time_local().naive_local(),
                 context.module_pf(),
                 context.level_name_p(),

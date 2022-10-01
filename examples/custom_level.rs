@@ -1,5 +1,5 @@
 use loggerithm::{logger, log, log_level};
-use loggerithm::level::INFO;
+use loggerithm::level::{LogLevel, INFO};
 
 logger!(super);
 log_level!(MY_AMAZING_CUSTOM_LOGGING_LEVEL, LogLevel::new(30));
